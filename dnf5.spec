@@ -4,7 +4,7 @@
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        1~pre%{?dist}
+Release:        2~pre%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
@@ -171,7 +171,7 @@ It supports RPM packages, modulemd modules, and comps groups & environments.
 
 %files
 %{_bindir}/dnf5
-%{_prefix}/lib/dnf5
+%{_prefix}/share/dnf5
 %dir %{_sysconfdir}/dnf/dnf5-aliases.d
 %doc %{_sysconfdir}/dnf/dnf5-aliases.d/README
 %dir %{_libdir}/dnf5/
@@ -576,6 +576,9 @@ Core DNF5 plugins that enhance dnf5 with builddep and changelog commands.
 
 
 %changelog
+* Wed Nov 2 2022 Nicola Sella <nsella@redhat.com> - 5.0.0-2~pre
+- Fix failing builds for i686 arch
+
 * Mon Oct 31 2022 Nicola Sella <nsella@redhat.com> - 5.0.0-1~pre
 - Add man pages to dnf5
 - Fix non x86_64 builds
