@@ -4,11 +4,16 @@
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
 Source0:        %{url}/archive/%{version}/dnf5-%{version}.tar.gz
+Patch1:         0001-Disable-tutorial-unit-tests.patch
+Patch2:         0002-modules-Add-ModuleQuery-filter-latest.patch
+Patch3:         0003-dnf5-Fix-rawhide-build-error.patch
+Patch4:         0004-test-Fix-rawhide-build-errors.patch
+
 
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       dnf-data
@@ -590,6 +595,10 @@ Core DNF5 plugins that enhance dnf5 with builddep and changelog commands.
 
 
 %changelog
+* Wed Jan 18 2023 Nicola Sella <nsella@redhat.com> - 5.0.4-2
+- Backport downstream patch to disable unit tests for python tutorials
+- Fix build in rawhide
+
 * Thu Jan 12 2023 Nicola Sella <nsella@redhat.com> - 5.0.4-1
 - Many fixes in perl bindings
 - Test functions enhanced
