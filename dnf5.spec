@@ -4,7 +4,7 @@
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
@@ -595,6 +595,9 @@ Core DNF5 plugins that enhance dnf5 with builddep and changelog commands.
 
 
 %changelog
+* Thu Jan 19 2023 Fedora Release Engineering <releng@fedoraproject.org> - 5.0.4-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_38_Mass_Rebuild
+
 * Wed Jan 18 2023 Nicola Sella <nsella@redhat.com> - 5.0.4-2
 - Backport downstream patch to disable unit tests for python tutorials
 - Fix build in rawhide
