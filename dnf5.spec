@@ -4,7 +4,7 @@
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
@@ -13,6 +13,7 @@ Patch1:         0001-Disable-tutorial-unit-tests.patch
 
 
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
+Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
 Requires:       dnf-data
 Recommends:     bash-completion
 
@@ -623,6 +624,10 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Wed Feb 15 2023 Nicola Sella <nsella@redhat.com> - 5.0.6-2
+- Resolve Major upgrade Bug (rhbz#2080358)
+- Add explicit package version for libdnf5-cli
+
 * Tue Feb 14 2023 Nicola Sella <nsella@redhat.com> - 5.0.6-1
 - Add obsoletes of microdnf
 - Many improvements related to internal logic and bugfixes
