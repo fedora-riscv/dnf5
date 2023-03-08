@@ -1,10 +1,10 @@
 %global project_version_major 5
 %global project_version_minor 0
-%global project_version_patch 6
+%global project_version_patch 7
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        2%{?dist}
+Release:        1%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
@@ -220,6 +220,7 @@ It supports RPM packages, modulemd modules, and comps groups & environments.
 %{_mandir}/man8/dnf5-remove.8.*
 %{_mandir}/man8/dnf5-repo.8.*
 %{_mandir}/man8/dnf5-repoquery.8.*
+%{_mandir}/man8/dnf5-search.8.*
 %{_mandir}/man8/dnf5-swap.8.*
 %{_mandir}/man8/dnf5-upgrade.8.*
 %{_mandir}/man7/dnf5-comps.7.*
@@ -624,6 +625,24 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Wed Mar 8 2023 Nicola Sella <nsella@redhat.com> - 5.0.7-1
+- Update to 5.0.7
+- Document set/get vars in python api
+- Document --strict deprecation
+- New configuration option "disable_multithreading"
+- Improved dnf5daemon to handle support groups and modules in return value
+- Ignore inaccessible config unless path specified as --config=...
+- Includes reordering and tweaks in advisories
+- Add support for package changelogs in swig and tests
+- Add many unit tests for dnf5 and python api
+- Add new --skip-unavailable command line option
+- Add search command
+- Add new error for incorrect API usages
+- Add a new method whether base was correctly initialized
+- Improved python exceptions on undefined var
+- transaction: Change API to run transaction without args
+- Add explicit package version for libdnf5-cli
+- Improved performance of packagequery
 * Wed Feb 15 2023 Nicola Sella <nsella@redhat.com> - 5.0.6-2
 - Resolve Major upgrade Bug (rhbz#2080358)
 - Add explicit package version for libdnf5-cli
