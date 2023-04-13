@@ -1,6 +1,6 @@
-From 919c0c2f67f651393dbe5a888b4fe906b91fe445 Mon Sep 17 00:00:00 2001
+From 5d3843144eb8012811aa099027cf768fd039162e Mon Sep 17 00:00:00 2001
 From: Nicola Sella <nsella@redhat.com>
-Date: Mon, 16 Jan 2023 15:06:19 +0100
+Date: Thu, 13 Apr 2023 18:33:04 +0200
 Subject: [PATCH] Disable tutorial unit-tests
 
 ---
@@ -8,12 +8,12 @@ Subject: [PATCH] Disable tutorial unit-tests
  1 file changed, 39 insertions(+), 39 deletions(-)
 
 diff --git a/test/python3/libdnf5/tutorial/test_tutorial.py b/test/python3/libdnf5/tutorial/test_tutorial.py
-index 0efd6a0a..9650cf89 100644
+index 24a11367..684ff4fd 100644
 --- a/test/python3/libdnf5/tutorial/test_tutorial.py
 +++ b/test/python3/libdnf5/tutorial/test_tutorial.py
-@@ -31,58 +31,58 @@ class TestTutorial(base_test_case.BaseTestCase):
-         self.cachedir = self.base.get_config().cachedir().get_value()
-         self.baseurl = pathlib.Path(os.path.join(PROJECT_BINARY_DIR, "test/data/repos-rpm/rpm-repo1/")).as_uri()
+@@ -33,57 +33,57 @@ class TestTutorial(base_test_case.BaseTestCase):
+         self.baseurl = pathlib.Path(os.path.join(
+             PROJECT_BINARY_DIR, "test/data/repos-rpm/rpm-repo1/")).as_uri()
  
 -    def test_create_base(self):
 -        file = ""
@@ -24,8 +24,8 @@ index 0efd6a0a..9650cf89 100644
 +    #     with open("tutorial/session/create_base.py", "r") as f:
 +    #         file += f.read()
  
--        exec(file, { 'installroot': self.installroot })
-+    #     exec(file, { 'installroot': self.installroot })
+-        exec(file, {'installroot': self.installroot})
++    #     exec(file, {'installroot': self.installroot})
  
 -    def test_load_repo(self):
 -        file = ""
@@ -41,8 +41,8 @@ index 0efd6a0a..9650cf89 100644
 +    #     with open("tutorial/repo/load_repo.py", "r") as f:
 +    #         file += f.read()
  
--        exec(file, { 'installroot': self.installroot, 'baseurl': self.baseurl })
-+    #     exec(file, { 'installroot': self.installroot, 'baseurl': self.baseurl })
+-        exec(file, {'installroot': self.installroot, 'baseurl': self.baseurl})
++    #     exec(file, {'installroot': self.installroot, 'baseurl': self.baseurl})
  
 -    def test_load_system_repo(self):
 -        # TODO(nsella) This example does not 'compile' yet
@@ -84,8 +84,8 @@ index 0efd6a0a..9650cf89 100644
 +    #     with open("tutorial/query/query.py", "r") as f:
 +    #         file += f.read()
  
--        exec(file, { 'installroot': self.installroot, 'baseurl': self.baseurl })
-+    #     exec(file, { 'installroot': self.installroot, 'baseurl': self.baseurl })
+-        exec(file, {'installroot': self.installroot, 'baseurl': self.baseurl})
++    #     exec(file, {'installroot': self.installroot, 'baseurl': self.baseurl})
  
 -    def test_transaction(self):
 -        file = ""
@@ -106,9 +106,8 @@ index 0efd6a0a..9650cf89 100644
 +    #     with open("tutorial/transaction/transaction.py", "r") as f:
 +    #         file += f.read()
  
--        exec(file, { 'installroot': self.installroot, 'baseurl': self.baseurl })
-+    #     exec(file, { 'installroot': self.installroot, 'baseurl': self.baseurl })
- 
+-        exec(file, {'installroot': self.installroot, 'baseurl': self.baseurl})
++    #     exec(file, {'installroot': self.installroot, 'baseurl': self.baseurl})
 -- 
-2.39.0
+2.39.2
 
