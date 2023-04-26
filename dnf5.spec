@@ -1,16 +1,14 @@
 %global project_version_major 5
 %global project_version_minor 0
-%global project_version_patch 8
+%global project_version_patch 9
 
 Name:           dnf5
-Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
+Version:        5.0.9
 Release:        1%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
 Source0:        %{url}/archive/%{version}/dnf5-%{version}.tar.gz
-Patch1:         0001-Disable-tutorial-unit-tests.patch
-
 
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
@@ -213,6 +211,7 @@ It supports RPM packages, modulemd modules, and comps groups & environments.
 # TODO(jkolarik): history is not ready yet
 # %%{_mandir}/man8/dnf5-history.8.*
 %{_mandir}/man8/dnf5-install.8.*
+%{_mandir}/man8/dnf5-leaves.8.*
 %{_mandir}/man8/dnf5-makecache.8.*
 %{_mandir}/man8/dnf5-mark.8.*
 # TODO(jkolarik): module is not ready yet
@@ -629,6 +628,148 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Wed Apr 26 2023 Nicola Sella <nsella@redhat.com> - 5.0.9-1
+- Release 5.0.9 (Nicola Sella)
+- Fix packit configuration (Nicola Sella)
+- solv_repo: Do not keep comps solvables ranges (Marek Blaha)
+- repo_sack: Fix missing xml files for installed groups (Marek Blaha)
+- solv_repo: Create group solvable from system state (Marek Blaha)
+- solv_repo: Method to read group solvable from xml (Marek Blaha)
+- comps: Handle error while serializing group (Marek Blaha)
+- solv_repo: Keep track of groups without xml (Marek Blaha)
+- repo: Set also repo in comps_pool as installed (Marek Blaha)
+- dnf5] Add "--userinstalled" to "repoquery" man page (Jaroslav Rohel)
+- [dnf5] Support for "--userinstalled" argument in repoquery (Jaroslav Rohel)
+- Add packit action to do auto-release (Nicola Sella)
+- progressbar: Prevent length_error exception (RhBug:2184271) (Marek Blaha)
+- [doc] project layout: Add dnf5-plugins directory (Jaroslav Rohel)
+- [doc] Coding style: Use C++20 (Jaroslav Rohel)
+- Fix .clang-format: Replace Cpp11 with c++20 (Jaroslav Rohel)
+- [dnf5] Add "--leaves" to "repoquery" man page (Jaroslav Rohel)
+- [dnf5] Add man page for leaves command (Jaroslav Rohel)
+- [dnf5] Support for "--leaves" argument in "repoquery" command (Jaroslav Rohel)
+- [dnf5] leaves command: Add long description (Jaroslav Rohel)
+- [dnf5] Command leaves (Jaroslav Rohel)
+- swig: Add VectorPackage and VectorVectorPackage templates (Jaroslav Rohel)
+- Implement new filters rpm::filter_leaves and rpm::filter_leaves_groups (Jaroslav Rohel)
+- Release 5.0.8 (Nicola Sella)
+- [dnf5] Improve error message in download command (Jaroslav Rohel)
+- [dnf5] Fix help in case argument parser detect error (Jaroslav Rohel)
+- generate dist-info for Python bindings (Matt Davis)
+- package_sack: Fix running kernel logging (Marek Blaha)
+- repoquery: unify option descriptions (Aleš Matěj)
+- repoquery: add --latest-limit option (Aleš Matěj)
+- Add 4 aliases for dnf5 commands (Jaroslav Mracek)
+- modules: Rename ModuleState enum to ModuleStatus (Pavla Kratochvilova)
+- Include base_weak.hpp because of base getters (Aleš Matěj)
+- Silent Swig Python memory leak/no destructor find (Aleš Matěj)
+- Update Python API test to check LogEvent::get_spec() wrapper (Jan Kolarik)
+- swig: Add wrapper for string pointers (Jan Kolarik)
+- Add Python API tests for LogEvent wrappers (Jan Kolarik)
+- swig: Add bindings for LogEvent (Jan Kolarik)
+- [dnf5] Add "up" and "update" aliases for "upgrade" command (Jaroslav Rohel)
+- NullLogger::write: Fix type of time argument (Jaroslav Rohel)
+- doc: Add info about package spec expressions (RhBug:2160420) (Jan Kolarik)
+- repoquery: add formatting options --requires, --provides.. (Aleš Matěj)
+- repoquery: remove unused nevra option (Aleš Matěj)
+- repoquery: add formatting func for attr options --requires/--provides.. (Aleš Matěj)
+- tests: `print_pkg_set_with_format(..)` in repoquery (Aleš Matěj)
+- tests: move test helpers into a shared library (Aleš Matěj)
+- repoquery: use queryformat str to format output for pkgs (Aleš Matěj)
+- repoquery: add `--queryformat` option (Aleš Matěj)
+- dnf5: Fix total number of actions (bars) in transaction progress (Jaroslav Rohel)
+- Add method API base::Transaction::get_transaction_packages_count (Jaroslav Rohel)
+- MultiProgressBar: get/set total number of bars (Jaroslav Rohel)
+- dnf5: Hide total transaction progress bar (Jaroslav Rohel)
+- MultiProgressBar: Define constexpr NEVER_VISIBLE_LIMIT (Jaroslav Rohel)
+- Deduplicate installroot config logic (Evan Goode)
+- Correctly load repos from installroot config file (Evan Goode)
+- repo::RepoSack::update_and_load_repos: Do not download local key files (Jaroslav Rohel)
+- repo::RepoSack::update_and_load_repos: Use FileDownloader to download keys (Jaroslav Rohel)
+- repo::RepoSack::update_and_load_repos: Arg to enable/disable keys import (Jaroslav Rohel)
+- repo::RepoSack::update_and_load_repos: Process repos with bad keys last (Jaroslav Rohel)
+- RepoSack::update_and_load_repos: First load repositories from cache (Jaroslav Rohel)
+- repo::Repo::get_config: Add const version of method (Jaroslav Rohel)
+- RepoDownloader::reset_loaded (Jaroslav Rohel)
+- modules: Change State to set and get the whole ModuleState (Pavla Kratochvilova)
+- dnf5: Stats: total and downloaded pkgs size, installed and freed space (Jaroslav Rohel)
+- dnf5::Context::print_info: Make method const and public (Jaroslav Rohel)
+- cli::utils::units: Add `to_size` func, rename `format_size` func (Jaroslav Rohel)
+- cli::utils::units::format_size: Fix formatting of negative numbers (Jaroslav Rohel)
+- New API method rpm::Package::is_available_locally (Jaroslav Rohel)
+- Create utils::OnScopeExit template class (Jaroslav Rohel)
+- Command::get_parent_command(): return the real parent (Pavel Raiskup)
+- Move description of DNF5 changes to doc (Jaroslav Mracek)
+- RepoSack: remember the repo file path (Pavel Raiskup)
+- pep8 fix in the tests (Marek Blaha)
+- dnfdaemon: Test install of rpm file from path (Marek Blaha)
+- dnfdaemon: Transaction commands work with file paths (Marek Blaha)
+- dnfdaemon-client: Unify pkg_specs argument across commands (Marek Blaha)
+- dnf5daemon-client: Command line args parsing as dnf5 (Marek Blaha)
+- dnfdaemon: Remove unused includes (Marek Blaha)
+- dnfdaemon: Test for goal (Marek Blaha)
+- dnfdaemon: Handle errors with unresolved transaction usage (Marek Blaha)
+- Use repo::DownloadCallbacks for all downloads (Jaroslav Rohel)
+- MultiProgressBar: Methods to hide total bar and its number widget (Jaroslav Rohel)
+- Mark DownloadProgressBar::set_number_vidget_visible as noexcept (Jaroslav Rohel)
+- Add Python API tests for load_extra_system_repo bad usages (Jan Kolarik)
+- repo: Use API assertions on API (Jan Kolarik)
+- Add Python API test for duplicate global logger instances (Jan Kolarik)
+- global_logger: Use API assertion (Jan Kolarik)
+- Add Python API tests for configuration locking (Jan Kolarik)
+- conf: Throw API assertions for Option methods (Jan Kolarik)
+- Add Python API tests for unsupported arguments in goal (Jan Kolarik)
+- goal: Use API assertion for unsupported argument (Jan Kolarik)
+- Add Python API tests for goal resolving use cases (Jan Kolarik)
+- swig: Convert all API assertions and runtime errors to SWIG runtime errors (Jan Kolarik)
+- transaction: Fix impl constructor (Jan Kolarik)
+- GoalPrivate: Fix protecting the running kernel (Marek Blaha)
+- goal: Better handling of obsoleted pkg installation (Marek Blaha)
+- PackageQuery: New ctor based on the PackageSet instance (Marek Blaha)
+- search: Fix typo from the previous commit (Jan Kolarik)
+- Remove showdupesfromrepos config option (Marek Blaha)
+- Fix files with pre-comit (Nicola Sella)
+- Add pre-commit to github actions (Nicola Sella)
+- Remove clang-format workflow (Nicola Sella)
+- Fix a typo in sqlite Requires in dnf5.spec (Petr Písař)
+- Set a minimal sqlite version (Petr Písař)
+- man: Add info about download command destination (Jan Kolarik)
+- output: Print resolve logs to stderr (Marek Blaha)
+- Add rpmlint to precommit (Nicola Sella)
+- dnf5daemon-server: Fix system repo double loading (Marek Blaha)
+- dnf5daemon-client: Remove unused method (Marek Blaha)
+- Add capability to find binaries to resolve_spec (Jaroslav Mracek)
+- Add global logger Python API test (Jan Kolarik)
+- swig: Add bindings for global logger (Jan Kolarik)
+- Add file logger factory Python API tests (Jan Kolarik)
+- swig: Add bindings for file logger factory (Jan Kolarik)
+- Add file logger factory C++ API tests (Jan Kolarik)
+- main: Use new factory for file logging (Jan Kolarik)
+- logger: Add factory method for creating file logger (Jan Kolarik)
+- goal: Fix group packages removal (RhBug:2173927) (Marek Blaha)
+- :Basic pre-commit configuration (Jiri Podivin)
+- solv_repo: Fix creating solver cache for comps (RhBug:2173929) (Jan Kolarik)
+- Fix a couple of memory leaks (Aleš Matěj)
+- Change to --use-host-config, warning suggesting --use-host-config (Evan Goode)
+- Load config and reposdir from installroot (Evan Goode)
+- Change Python scripts to use new configuration attributes (Jan Kolarik)
+- Add Python API tests for new configuration attributes (Jan Kolarik)
+- swig: Add shortcuts for configuration options in Python (Jan Kolarik)
+- conf: Rename option getters (Jan Kolarik)
+- Revert "conf: New configuration option "disable_multithreading"" (Jaroslav Rohel)
+- Revert "RepoSack::update_and_load_repos: Added single-threaded mode" (Jaroslav Rohel)
+- Unit tests: Enable multithreading (Jaroslav Rohel)
+- Disable parallel running of some unit tests (Jaroslav Rohel)
+- conf: Change default color of installed pkg version (Marek Blaha)
+- Describe the changes in the list command behavior (Marek Blaha)
+- dnf5: Add compatibility alias ls->list (Marek Blaha)
+- dnf5: Implement info command (Marek Blaha)
+- dnf5: Implement list command (Marek Blaha)
+- libdnf-cli: Packages info by sections (Marek Blaha)
+- libdnf-cli: Output of package lists by sections (Marek Blaha)
+- libdnf-cli: Class for colorizing list output (Marek Blaha)
+- dnf5: Fix --exactdeps argument description (Marek Blaha)
+
 * Thu Apr 13 2023 Nicola Sella <nsella@redhat.com> - 5.0.8-1
 - Update to 5.0.8
 - Improve error message in download command
