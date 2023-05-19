@@ -4,7 +4,7 @@
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
@@ -632,6 +632,9 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Fri May 19 2023 Petr Pisar <ppisar@redhat.com> - 5.0.11-3
+- Rebuild against rpm-4.19 (https://fedoraproject.org/wiki/Changes/RPM-4.19)
+
 * Fri May 19 2023 Nicola Sella <nsella@redhat.com> - 5.0.11-2
 - Fix builds for arch non x86_64
 
