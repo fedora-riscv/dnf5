@@ -4,12 +4,13 @@
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
 Source0:        %{url}/archive/%{version}/dnf5-%{version}.tar.gz
 Patch0001:      0001-Disable-tutorial-unit-tests.patch
+Patch0002:      0002-Fix-build-for-arch-non-x86-64.patch
 
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
@@ -631,6 +632,9 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Fri May 19 2023 Nicola Sella <nsella@redhat.com> - 5.0.11-2
+- Fix builds for arch non x86_64
+
 * Thu May 18 2023 Packit <hello@packit.dev> - 5.0.11-1
 - Release 5.0.11
 - Add --contains-pkgs option to group info

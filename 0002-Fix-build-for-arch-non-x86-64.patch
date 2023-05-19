@@ -1,0 +1,110 @@
+From 9922f7b6b4f57db312728fc88795f3e0f93f351c Mon Sep 17 00:00:00 2001
+From: Jan Kolarik <jkolarik@redhat.com>
+Date: Thu, 18 May 2023 10:01:13 +0000
+Subject: [PATCH 1/4] Force python tests arch to x86_64
+
+---
+ test/python3/libdnf5/base_test_case.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/test/python3/libdnf5/base_test_case.py b/test/python3/libdnf5/base_test_case.py
+index deab2b547..a651d965f 100644
+--- a/test/python3/libdnf5/base_test_case.py
++++ b/test/python3/libdnf5/base_test_case.py
+@@ -38,6 +38,9 @@ def setUp(self):
+         self.base.get_config().cachedir = os.path.join(self.temp_dir, "cache")
+         self.base.get_config().optional_metadata_types = libdnf5.conf.OPTIONAL_METADATA_TYPES
+ 
++        vars = self.base.get_vars().get()
++        vars.set("arch", "x86_64")
++
+         self.base.setup()
+ 
+         self.repo_sack = self.base.get_repo_sack()
+
+From 25d1d4ce89b57107f0d4a138f17795c7fa42a101 Mon Sep 17 00:00:00 2001
+From: Jan Kolarik <jkolarik@redhat.com>
+Date: Thu, 18 May 2023 10:05:56 +0000
+Subject: [PATCH 2/4] Add package check to Python transaction tests
+
+---
+ test/python3/libdnf5/base/test_transaction.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/test/python3/libdnf5/base/test_transaction.py b/test/python3/libdnf5/base/test_transaction.py
+index 3e205a3aa..968d58392 100644
+--- a/test/python3/libdnf5/base/test_transaction.py
++++ b/test/python3/libdnf5/base/test_transaction.py
+@@ -30,6 +30,7 @@ def test_check_gpg_signatures_no_gpgcheck(self):
+         goal.add_rpm_install("pkg")
+         transaction = goal.resolve()
+ 
++        self.assertEqual(1, transaction.get_transaction_packages_count())
+         self.assertTrue(transaction.check_gpg_signatures())
+         self.assertEqual((), transaction.get_gpg_signature_problems())
+ 
+@@ -40,5 +41,6 @@ def test_check_gpg_signatures_fail(self):
+         goal.add_rpm_install("pkg")
+         transaction = goal.resolve()
+ 
++        self.assertEqual(1, transaction.get_transaction_packages_count())
+         self.assertFalse(transaction.check_gpg_signatures())
+         self.assertTrue(len(transaction.get_gpg_signature_problems()) > 0)
+
+From f3e78e85e3a9d5672b94c5dff0b8c88446d7f66a Mon Sep 17 00:00:00 2001
+From: Jan Kolarik <jkolarik@redhat.com>
+Date: Thu, 18 May 2023 10:24:31 +0000
+Subject: [PATCH 3/4] Add package check to cpp transaction tests
+
+---
+ test/libdnf/base/test_transaction.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/test/libdnf/base/test_transaction.cpp b/test/libdnf/base/test_transaction.cpp
+index 0af1469f9..04fe9446d 100644
+--- a/test/libdnf/base/test_transaction.cpp
++++ b/test/libdnf/base/test_transaction.cpp
+@@ -34,6 +34,7 @@ void BaseTransactionTest::test_check_gpg_signatures_no_gpgcheck() {
+     goal.add_rpm_install("pkg");
+     auto transaction = goal.resolve();
+ 
++    CPPUNIT_ASSERT_EQUAL((size_t)1, transaction.get_transaction_packages_count());
+     CPPUNIT_ASSERT(transaction.check_gpg_signatures());
+     CPPUNIT_ASSERT(transaction.get_gpg_signature_problems().empty());
+ }
+@@ -47,6 +48,7 @@ void BaseTransactionTest::test_check_gpg_signatures_fail() {
+     goal.add_rpm_install("pkg");
+     auto transaction = goal.resolve();
+ 
++    CPPUNIT_ASSERT_EQUAL((size_t)1, transaction.get_transaction_packages_count());
+     CPPUNIT_ASSERT(!transaction.check_gpg_signatures());
+     CPPUNIT_ASSERT(!transaction.get_gpg_signature_problems().empty());
+ }
+
+From c2f333f6909e87025854916b0ac0cee3a85e63b6 Mon Sep 17 00:00:00 2001
+From: Jan Kolarik <jkolarik@redhat.com>
+Date: Thu, 18 May 2023 10:32:04 +0000
+Subject: [PATCH 4/4] Unify setup in Python base test class
+
+---
+ test/python3/libdnf5/base_test_case.py | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/test/python3/libdnf5/base_test_case.py b/test/python3/libdnf5/base_test_case.py
+index a651d965f..dc2543e38 100644
+--- a/test/python3/libdnf5/base_test_case.py
++++ b/test/python3/libdnf5/base_test_case.py
+@@ -34,9 +34,10 @@ def setUp(self):
+ 
+         self.temp_dir = tempfile.mkdtemp(prefix="libdnf5_python3_unittest.")
+ 
+-        self.base.get_config().installroot = os.path.join(self.temp_dir, "installroot")
+-        self.base.get_config().cachedir = os.path.join(self.temp_dir, "cache")
+-        self.base.get_config().optional_metadata_types = libdnf5.conf.OPTIONAL_METADATA_TYPES
++        config = self.base.get_config()
++        config.installroot = os.path.join(self.temp_dir, "installroot")
++        config.cachedir = os.path.join(self.temp_dir, "cache")
++        config.optional_metadata_types = libdnf5.conf.OPTIONAL_METADATA_TYPES
+ 
+         vars = self.base.get_vars().get()
+         vars.set("arch", "x86_64")
