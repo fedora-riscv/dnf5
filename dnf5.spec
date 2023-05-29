@@ -1,6 +1,6 @@
 %global project_version_major 5
 %global project_version_minor 0
-%global project_version_patch 12
+%global project_version_patch 13
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
@@ -11,9 +11,11 @@ URL:            https://github.com/rpm-software-management/dnf5
 Source0:        %{url}/archive/%{version}/dnf5-%{version}.tar.gz
 Patch0001:      0001-Disable-tutorial-unit-tests.patch
 
-
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
+%if 0%{?fedora} <= 38
+Requires:       dnf-data
+%endif
 Recommends:     bash-completion
 
 # Remove if condition when Fedora 37 is EOL
@@ -22,11 +24,13 @@ Provides:       microdnf = %{version}-%{release}
 Obsoletes:      microdnf < 4
 %endif
 
+%if 0%{?fedora} > 38
 Provides:       dnf = %{version}-%{release}
 Obsoletes:      dnf < 5
 
 Provides:       yum = %{version}-%{release}
 Obsoletes:      yum < 5
+%endif
 
 # ========== build options ==========
 
@@ -185,8 +189,10 @@ It supports RPM packages, modulemd modules, and comps groups & environments.
 
 %files
 %{_bindir}/dnf5
+%if 0%{?fedora} > 38
 %{_bindir}/dnf
 %{_bindir}/yum
+%endif
 
 # Remove if condition when Fedora 37 is EOL
 %if 0%{?fedora} > 37
@@ -249,15 +255,19 @@ License:        LGPL-2.1-or-later
 Requires:       libsolv%{?_isa} >= %{libsolv_version}
 Requires:       librepo%{?_isa} >= %{librepo_version}
 Requires:       sqlite-libs%{?_isa} >= %{sqlite_version}
+%if 0%{?fedora} > 38
 Conflicts:      dnf-data < 4.16.0
+%endif
 
 %description -n libdnf5
 Package management library.
 
 %files -n libdnf5
+%if 0%{?fedora} > 38
 %config(noreplace) %{_sysconfdir}/dnf/dnf.conf
 %dir %{_sysconfdir}/dnf/vars
 %dir %{_sysconfdir}/dnf/protected.d
+%endif
 %dir %{_libdir}/libdnf5
 %{_libdir}/libdnf5.so.1*
 %license lgpl-2.1.txt
@@ -523,6 +533,9 @@ Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
 Requires:       dbus
 Requires:       polkit
+%if 0%{?fedora} <= 38
+Requires:       dnf-data
+%endif
 
 %description -n dnf5daemon-server
 Package management service with a DBus interface.
@@ -622,8 +635,10 @@ Core DNF5 plugins that enhance dnf5 with builddep, changelog, copr, and repoclos
 %install
 %cmake_install
 
+%if 0%{?fedora} > 38
 ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/dnf
 ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/yum
+%endif
 
 # own dirs and files that dnf5 creates on runtime
 mkdir -p %{buildroot}%{_prefix}/lib/sysimage/dnf
@@ -647,6 +662,12 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Mon May 29 2023 Packit <hello@packit.dev> - 5.0.13-1
+- Release 5.0.13
+- Fix resolve behavior for `download`
+- Add a message when `--downloadonly` is used
+- Add `--downloadonly` option to multiple commands
+
 * Thu May 25 2023 Nicola Sella <nsella@redhat.com> - 5.0.12-1
 - Release 5.0.12
 - Have DNF update to DNF5
