@@ -1,26 +1,35 @@
 %global project_version_major 5
 %global project_version_minor 0
-%global project_version_patch 11
+%global project_version_patch 13
 
 Name:           dnf5
-Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        2%{?dist}
+Version:		%{project_version_major}.%{project_version_minor}.%{project_version_patch}
+Release:        1%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
 Source0:        %{url}/archive/%{version}/dnf5-%{version}.tar.gz
 Patch0001:      0001-Disable-tutorial-unit-tests.patch
-Patch0002:      0002-Fix-build-for-arch-non-x86-64.patch
 
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
+%if 0%{?fedora} <= 38
 Requires:       dnf-data
+%endif
 Recommends:     bash-completion
 
 # Remove if condition when Fedora 37 is EOL
 %if 0%{?fedora} > 37
 Provides:       microdnf = %{version}-%{release}
 Obsoletes:      microdnf < 4
+%endif
+
+%if 0%{?fedora} > 38
+Provides:       dnf = %{version}-%{release}
+Obsoletes:      dnf < 5
+
+Provides:       yum = %{version}-%{release}
+Obsoletes:      yum < 5
 %endif
 
 # ========== build options ==========
@@ -180,6 +189,10 @@ It supports RPM packages, modulemd modules, and comps groups & environments.
 
 %files
 %{_bindir}/dnf5
+%if 0%{?fedora} > 38
+%{_bindir}/dnf
+%{_bindir}/yum
+%endif
 
 # Remove if condition when Fedora 37 is EOL
 %if 0%{?fedora} > 37
@@ -242,11 +255,19 @@ License:        LGPL-2.1-or-later
 Requires:       libsolv%{?_isa} >= %{libsolv_version}
 Requires:       librepo%{?_isa} >= %{librepo_version}
 Requires:       sqlite-libs%{?_isa} >= %{sqlite_version}
+%if 0%{?fedora} > 38
+Conflicts:      dnf-data < 4.16.0
+%endif
 
 %description -n libdnf5
 Package management library.
 
 %files -n libdnf5
+%if 0%{?fedora} > 38
+%config(noreplace) %{_sysconfdir}/dnf/dnf.conf
+%dir %{_sysconfdir}/dnf/vars
+%dir %{_sysconfdir}/dnf/protected.d
+%endif
 %dir %{_libdir}/libdnf5
 %{_libdir}/libdnf5.so.1*
 %license lgpl-2.1.txt
@@ -511,8 +532,10 @@ License:        GPL-2.0-or-later
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
 Requires:       dbus
-Requires:       dnf-data
 Requires:       polkit
+%if 0%{?fedora} <= 38
+Requires:       dnf-data
+%endif
 
 %description -n dnf5daemon-server
 Package management service with a DBus interface.
@@ -553,6 +576,8 @@ Core DNF5 plugins that enhance dnf5 with builddep, changelog, copr, and repoclos
 
 %files -n dnf5-plugins
 %{_libdir}/dnf5/plugins/*.so
+%{_mandir}/man8/dnf5-builddep.8.*
+%{_mandir}/man8/dnf5-copr.8.*
 %{_mandir}/man8/dnf5-repoclosure.8.*
 %endif
 
@@ -610,6 +635,11 @@ Core DNF5 plugins that enhance dnf5 with builddep, changelog, copr, and repoclos
 %install
 %cmake_install
 
+%if 0%{?fedora} > 38
+ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/dnf
+ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/yum
+%endif
+
 # own dirs and files that dnf5 creates on runtime
 mkdir -p %{buildroot}%{_prefix}/lib/sysimage/dnf
 for files in \
@@ -632,6 +662,46 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Mon May 29 2023 Packit <hello@packit.dev> - 5.0.13-1
+- Release 5.0.13
+- Fix resolve behavior for `download`
+- Add a message when `--downloadonly` is used
+- Add `--downloadonly` option to multiple commands
+- Release 5.0.12
+- Have DNF update to DNF5
+  - Add dnf, yum obsoletes and provides
+  - Symlinks for `dnf` and `yum` binaries
+  - Move ownership of /etc/dnf/dnf.conf, /etc/dnf/vars, and
+    /etc/dnf/protected.d from dnf-data to libdnf5
+    - Conflict with older versions of dnf-data that own these files/directories
+- Print environments in the transaction table
+- Add support for environmantal groups in dnf5daemon
+- Handle unnamed groups in transaction table
+- Update documentation for `distro-sync --skip-unavailable`
+- Update documentation for `downgrade --skip-unavailable`
+- Update documentation for `upgrade --skip-unavailable`
+- Add repoquery `--files` and `files` querytag instead of `--list`
+- Add getters to package for: debug, source, repo-name
+- Add `repoquery --querytags` option
+- Document `repoquery --queryformat`
+- Add `repoquery --qf` alias to `repoquery --queryformat`
+- Add get_depends() to package and --depends to repoquery
+- Implement keepcache functionality (RhBug:2176384)
+  - API changes:
+    - libdnf::repo::PackageDownloader default ctor dropped (now accepting the Base object)
+    - libdnf::base::Transaction not accepting dest_dir anymore (implicitly taken from configuration)
+  - A note for existing users:
+    - Regardless of the keepcache option, all downloaded packages have been cached up until now.
+    - Starting from now, downloaded packages will be kept only until the next successful transaction (keepcache=False by default).
+    - To remove all existing packages from the cache, use the `dnf5 clean packages` command.
+- goal: Split group specs resolution to separate method
+- comps: Possibility to create an empty EnvironmentQuery
+- `remove` command accepts `remove spec`
+- Refactor remove positional arguments
+- Remove duplicates from `group list` output
+- Document `copr` plugin command
+- Document `builddep` plugin command
+
 * Fri May 19 2023 Nicola Sella <nsella@redhat.com> - 5.0.11-2
 - Fix builds for arch non x86_64
 
