@@ -4,7 +4,7 @@
 
 Name:           dnf5
 Version:        %{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
@@ -267,6 +267,8 @@ Package management library.
 %config(noreplace) %{_sysconfdir}/dnf/dnf.conf
 %dir %{_sysconfdir}/dnf/vars
 %dir %{_sysconfdir}/dnf/protected.d
+%else
+%exclude %{_sysconfdir}/dnf/dnf.conf
 %endif
 %dir %{_libdir}/libdnf5
 %{_libdir}/libdnf5.so.1*
@@ -662,6 +664,9 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Tue May 30 2023 Packit <nsella@redhat.com> - 5.0.13-2
+- Update specfile to exclude dnf.conf for fedora < 39
+
 * Mon May 29 2023 Packit <hello@packit.dev> - 5.0.13-1
 - Release 5.0.13
 - Fix resolve behavior for `download`
