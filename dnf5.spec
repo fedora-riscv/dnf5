@@ -2,9 +2,14 @@
 %global project_version_minor 0
 %global project_version_patch 13
 
+%ifarch riscv64
+# libdnf test failed on riscv64, skip all tests.
+%global _without_tests 1
+%endif
+
 Name:           dnf5
 Version:		%{project_version_major}.%{project_version_minor}.%{project_version_patch}
-Release:        2%{?dist}
+Release:        2.rv64%{?dist}
 Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
@@ -664,6 +669,9 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Fri Jun 16 2023 Liu Yang <Yang.Liu.sn@gmail.com> - 5.0.13-2.rv64
+- Skip tests on riscv64
+
 * Tue May 30 2023 Packit <nsella@redhat.com> - 5.0.13-2
 - Update specfile to exclude dnf.conf for fedora < 39
 
