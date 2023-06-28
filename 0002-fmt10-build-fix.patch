@@ -1,0 +1,29 @@
+From ae868a92d2494086817638730a4dbc6afb4457ce Mon Sep 17 00:00:00 2001
+From: Jan Kolarik <jkolarik@redhat.com>
+Date: Wed, 28 Jun 2023 10:40:28 +0000
+Subject: [PATCH] Fix building with upcoming fmt-10 library
+
+As implicit conversions for enums were deprecated in fmt 10.0.0, we need to explicitly do the conversion for custom enums.
+
+See: https://github.com/fmtlib/fmt/blob/10.0.0/ChangeLog.rst?plain=1#L68
+---
+ libdnf/rpm/transaction.hpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/libdnf/rpm/transaction.hpp b/libdnf/rpm/transaction.hpp
+index 8b5da438c..6c6efa34e 100644
+--- a/libdnf/rpm/transaction.hpp
++++ b/libdnf/rpm/transaction.hpp
+@@ -36,6 +36,12 @@ along with libdnf.  If not, see <https://www.gnu.org/licenses/>.
+ 
+ #include <memory>
+ 
++// Required for building with fmt >= 10
++// See: https://github.com/fmtlib/fmt/blob/10.0.0/ChangeLog.rst?plain=1#L68
++inline uint32_t format_as(rpmCallbackType type) {
++    return static_cast<uint32_t>(type);
++}
++
+ 
+ namespace libdnf::rpm {
+ 
