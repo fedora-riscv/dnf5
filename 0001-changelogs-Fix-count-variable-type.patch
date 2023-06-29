@@ -1,0 +1,73 @@
+From e191e13eb7f169ef1037462e4f98f9e213efea37 Mon Sep 17 00:00:00 2001
+From: Pavla Kratochvilova <pkratoch@redhat.com>
+Date: Thu, 29 Jun 2023 13:22:12 +0200
+Subject: [PATCH] changelogs: Fix `count` variable type
+
+The variable `count` in `print_changelogs` used to be `int32_t`, but was
+changed to `int64_t`. Because of that, the build on i686 arch fails with:
+
+```
+error: conversion from 'int64_t' {aka 'long long int'} to
+'__gnu_cxx::__normal_iterator<libdnf5::rpm::Changelog*,
+std::vector<libdnf5::rpm::Changelog> >::difference_type' {aka 'int'} may
+change value [-Werror=conversion]
+```
+---
+ dnf5-plugins/changelog_plugin/changelog.cpp | 4 ++--
+ include/libdnf5-cli/output/changelogs.hpp   | 2 +-
+ libdnf5-cli/output/changelogs.cpp           | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/dnf5-plugins/changelog_plugin/changelog.cpp b/dnf5-plugins/changelog_plugin/changelog.cpp
+index 7df64b4b7..734dcdd2d 100644
+--- a/dnf5-plugins/changelog_plugin/changelog.cpp
++++ b/dnf5-plugins/changelog_plugin/changelog.cpp
+@@ -117,8 +117,8 @@ void ChangelogCommand::configure() {
+ void ChangelogCommand::run() {
+     auto & ctx = get_context();
+ 
+-    std::pair<libdnf5::cli::output::ChangelogFilterType, std::variant<libdnf5::rpm::PackageQuery, int64_t>> filter = {
+-        libdnf5::cli::output::ChangelogFilterType::NONE, 0};
++    std::pair<libdnf5::cli::output::ChangelogFilterType, std::variant<libdnf5::rpm::PackageQuery, int64_t, int32_t>>
++        filter = {libdnf5::cli::output::ChangelogFilterType::NONE, 0};
+     libdnf5::rpm::PackageQuery full_package_query(ctx.base, libdnf5::sack::ExcludeFlags::APPLY_EXCLUDES, false);
+ 
+     auto since = since_option->get_value();
+diff --git a/include/libdnf5-cli/output/changelogs.hpp b/include/libdnf5-cli/output/changelogs.hpp
+index c3b7333c7..179d1e898 100644
+--- a/include/libdnf5-cli/output/changelogs.hpp
++++ b/include/libdnf5-cli/output/changelogs.hpp
+@@ -33,7 +33,7 @@ enum class ChangelogFilterType { NONE, UPGRADES, COUNT, SINCE };
+ 
+ void print_changelogs(
+     libdnf5::rpm::PackageQuery & query,
+-    std::pair<ChangelogFilterType, std::variant<libdnf5::rpm::PackageQuery, int64_t>> filter);
++    std::pair<ChangelogFilterType, std::variant<libdnf5::rpm::PackageQuery, int64_t, int32_t>> filter);
+ 
+ }  // namespace libdnf5::cli::output
+ 
+diff --git a/libdnf5-cli/output/changelogs.cpp b/libdnf5-cli/output/changelogs.cpp
+index 553ad88f2..bd481c4b1 100644
+--- a/libdnf5-cli/output/changelogs.cpp
++++ b/libdnf5-cli/output/changelogs.cpp
+@@ -34,7 +34,7 @@ namespace libdnf5::cli::output {
+ 
+ void print_changelogs(
+     libdnf5::rpm::PackageQuery & query,
+-    std::pair<ChangelogFilterType, std::variant<libdnf5::rpm::PackageQuery, int64_t>> filter) {
++    std::pair<ChangelogFilterType, std::variant<libdnf5::rpm::PackageQuery, int64_t, int32_t>> filter) {
+     // by_srpm
+     std::map<std::string, std::vector<libdnf5::rpm::Package>> by_srpm;
+     for (auto pkg : query) {
+@@ -88,7 +88,7 @@ void print_changelogs(
+             }
+             changelogs.erase(changelogs.begin() + static_cast<int>(idx), changelogs.end());
+         } else if (filter.first == ChangelogFilterType::COUNT) {
+-            int64_t count = std::get<int64_t>(filter.second);
++            int32_t count = std::get<int32_t>(filter.second);
+             if (count > 0) {
+                 if (static_cast<size_t>(count) < changelogs.size()) {
+                     changelogs.erase(changelogs.begin() + count, changelogs.end());
+-- 
+2.41.0
+
