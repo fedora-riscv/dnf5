@@ -1,6 +1,8 @@
 %global project_version_major 5
-%global project_version_minor 0
-%global project_version_patch 13
+%global project_version_minor 1
+%global project_version_patch 7
+
+%bcond dnf5_obsoletes_dnf %[0%{?fedora} > 40 || 0%{?rhel} > 10]
 
 %ifarch riscv64
 # libdnf test failed on riscv64, skip all tests.
@@ -14,28 +16,56 @@ Summary:        Command-line package manager
 License:        GPL-2.0-or-later
 URL:            https://github.com/rpm-software-management/dnf5
 Source0:        %{url}/archive/%{version}/dnf5-%{version}.tar.gz
-Patch0001:      0001-Disable-tutorial-unit-tests.patch
 
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
-%if 0%{?fedora} <= 38
+%if %{without dnf5_obsoletes_dnf}
 Requires:       dnf-data
 %endif
 Recommends:     bash-completion
 
 # Remove if condition when Fedora 37 is EOL
-%if 0%{?fedora} > 37
+%if 0%{?fedora} > 37 || 0%{?rhel} > 10
 Provides:       microdnf = %{version}-%{release}
 Obsoletes:      microdnf < 4
 %endif
 
-%if 0%{?fedora} > 38
+%if %{with dnf5_obsoletes_dnf}
 Provides:       dnf = %{version}-%{release}
 Obsoletes:      dnf < 5
 
 Provides:       yum = %{version}-%{release}
 Obsoletes:      yum < 5
 %endif
+
+Provides:       dnf5-command(install)
+Provides:       dnf5-command(upgrade)
+Provides:       dnf5-command(remove)
+Provides:       dnf5-command(distro-sync)
+Provides:       dnf5-command(downgrade)
+Provides:       dnf5-command(reinstall)
+Provides:       dnf5-command(swap)
+Provides:       dnf5-command(mark)
+Provides:       dnf5-command(autoremove)
+Provides:       dnf5-command(check-upgrade)
+
+Provides:       dnf5-command(leaves)
+Provides:       dnf5-command(repoquery)
+Provides:       dnf5-command(search)
+Provides:       dnf5-command(list)
+Provides:       dnf5-command(info)
+
+Provides:       dnf5-command(group)
+Provides:       dnf5-command(environment)
+Provides:       dnf5-command(module)
+Provides:       dnf5-command(history)
+Provides:       dnf5-command(repo)
+Provides:       dnf5-command(advisory)
+
+Provides:       dnf5-command(clean)
+Provides:       dnf5-command(download)
+Provides:       dnf5-command(makecache)
+
 
 # ========== build options ==========
 
@@ -45,6 +75,7 @@ Obsoletes:      yum < 5
 %bcond_without dnf5
 %bcond_without dnf5_plugins
 %bcond_without plugin_actions
+%bcond_without plugin_rhsm
 %bcond_without python_plugins_loader
 
 %bcond_without comps
@@ -78,7 +109,7 @@ Obsoletes:      yum < 5
 
 %global libmodulemd_version 2.5.0
 %global librepo_version 1.15.0
-%global libsolv_version 0.7.21
+%global libsolv_version 0.7.25
 %global sqlite_version 3.35.0
 %global swig_version 4
 %global zchunk_version 0.9.11
@@ -156,6 +187,11 @@ BuildRequires:  python3dist(dbus-python)
 %endif
 %endif
 
+%if %{with plugin_rhsm}
+BuildRequires:  pkgconfig(librhsm) >= 0.0.3
+BuildRequires:  pkgconfig(glib-2.0) >= 2.44.0
+%endif
+
 # ========== language bindings section ==========
 
 %if %{with perl5} || %{with ruby} || %{with python3}
@@ -194,13 +230,13 @@ It supports RPM packages, modulemd modules, and comps groups & environments.
 
 %files
 %{_bindir}/dnf5
-%if 0%{?fedora} > 38
+%if %{with dnf5_obsoletes_dnf}
 %{_bindir}/dnf
 %{_bindir}/yum
 %endif
 
 # Remove if condition when Fedora 37 is EOL
-%if 0%{?fedora} > 37
+%if 0%{?fedora} > 37 || 0%{?rhel} > 10
 %{_bindir}/microdnf
 %endif
 
@@ -247,6 +283,7 @@ It supports RPM packages, modulemd modules, and comps groups & environments.
 %{_mandir}/man7/dnf5-comps.7.*
 # TODO(jkolarik): filtering is not ready yet
 # %%{_mandir}/man7/dnf5-filtering.7.*
+%{_mandir}/man7/dnf5-forcearch.7.*
 %{_mandir}/man7/dnf5-installroot.7.*
 # TODO(jkolarik): modularity is not ready yet
 # %%{_mandir}/man7/dnf5-modularity.7.*
@@ -260,7 +297,7 @@ License:        LGPL-2.1-or-later
 Requires:       libsolv%{?_isa} >= %{libsolv_version}
 Requires:       librepo%{?_isa} >= %{librepo_version}
 Requires:       sqlite-libs%{?_isa} >= %{sqlite_version}
-%if 0%{?fedora} > 38
+%if %{with dnf5_obsoletes_dnf}
 Conflicts:      dnf-data < 4.16.0
 %endif
 
@@ -268,17 +305,24 @@ Conflicts:      dnf-data < 4.16.0
 Package management library.
 
 %files -n libdnf5
-%if 0%{?fedora} > 38
+%if %{with dnf5_obsoletes_dnf}
 %config(noreplace) %{_sysconfdir}/dnf/dnf.conf
 %dir %{_sysconfdir}/dnf/vars
 %dir %{_sysconfdir}/dnf/protected.d
 %else
 %exclude %{_sysconfdir}/dnf/dnf.conf
 %endif
+%dir %{_datadir}/dnf5/libdnf.conf.d
+%dir %{_sysconfdir}/dnf/libdnf5.conf.d
+%dir %{_datadir}/dnf5/repos.override.d
+%dir %{_sysconfdir}/dnf/repos.override.d
+%dir %{_sysconfdir}/dnf/libdnf5-plugins
+%dir %{_datadir}/dnf5/repos.d
+%dir %{_datadir}/dnf5/vars.d
 %dir %{_libdir}/libdnf5
 %{_libdir}/libdnf5.so.1*
 %license lgpl-2.1.txt
-%{_var}/cache/libdnf/
+%{_var}/cache/libdnf5/
 
 # ========== libdnf5-cli ==========
 
@@ -292,7 +336,7 @@ Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Library for working with a terminal in a command-line package manager.
 
 %files -n libdnf5-cli
-%{_libdir}/libdnf-cli.so.1*
+%{_libdir}/libdnf5-cli.so.1*
 %license COPYING.md
 %license lgpl-2.1.txt
 %endif
@@ -322,16 +366,15 @@ Summary:        Development files for libdnf
 License:        LGPL-2.1-or-later
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libsolv-devel%{?_isa} >= %{libsolv_version}
-Conflicts:      libdnf-devel < 5
 
 %description -n libdnf5-devel
 Development files for libdnf.
 
 %files -n libdnf5-devel
-%{_includedir}/libdnf/
+%{_includedir}/libdnf5/
 %dir %{_libdir}/libdnf5
 %{_libdir}/libdnf5.so
-%{_libdir}/pkgconfig/libdnf.pc
+%{_libdir}/pkgconfig/libdnf5.pc
 %license COPYING.md
 %license lgpl-2.1.txt
 
@@ -347,9 +390,9 @@ Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
 Development files for libdnf5-cli.
 
 %files -n libdnf5-cli-devel
-%{_includedir}/libdnf-cli/
-%{_libdir}/libdnf-cli.so
-%{_libdir}/pkgconfig/libdnf-cli.pc
+%{_includedir}/libdnf5-cli/
+%{_libdir}/libdnf5-cli.so
+%{_libdir}/pkgconfig/libdnf5-cli.pc
 %license COPYING.md
 %license lgpl-2.1.txt
 
@@ -478,15 +521,38 @@ Ruby bindings for the libdnf5-cli library.
 
 %if %{with plugin_actions}
 %package -n libdnf5-plugin-actions
-Summary:        Libdnf plugin that allows to run actions (external executables) on hooks
+Summary:        Libdnf5 plugin that allows to run actions (external executables) on hooks
 License:        LGPL-2.1-or-later
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 
 %description -n libdnf5-plugin-actions
-Libdnf plugin that allows to run actions (external executables) on hooks.
+Libdnf5 plugin that allows to run actions (external executables) on hooks.
 
 %files -n libdnf5-plugin-actions
 %{_libdir}/libdnf5/plugins/actions.*
+%config %{_sysconfdir}/dnf/libdnf5-plugins/actions.conf
+%dir %{_sysconfdir}/dnf/libdnf5-plugins/actions.d
+%{_mandir}/man8/libdnf5-actions.8.*
+%endif
+
+
+# ========== libdnf5-plugin-plugin_rhsm ==========
+
+%if %{with plugin_rhsm}
+%package -n libdnf5-plugin-rhsm
+Summary:        Libdnf5 rhsm (Red Hat Subscription Manager) plugin
+License:        LGPL-2.1-or-later
+Requires:       libdnf5%{?_isa} = %{version}-%{release}
+
+%description -n libdnf5-plugin-rhsm
+Libdnf5 plugin with basic support for Red Hat subscriptions.
+Synchronizes the the enrollment with the vendor system. This can change
+the contents of the repositories configuration files according
+to the subscription levels.
+
+%files -n libdnf5-plugin-rhsm
+%{_libdir}/libdnf5/plugins/rhsm.*
+%config %{_sysconfdir}/dnf/libdnf5-plugins/rhsm.conf
 %endif
 
 
@@ -494,13 +560,13 @@ Libdnf plugin that allows to run actions (external executables) on hooks.
 
 %if %{with python_plugins_loader}
 %package -n python3-libdnf5-python-plugins-loader
-Summary:        Libdnf plugin that allows loading Python plugins
+Summary:        Libdnf5 plugin that allows loading Python plugins
 License:        LGPL-2.1-or-later
 Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       python3-libdnf5%{?_isa} = %{version}-%{release}
 
 %description -n python3-libdnf5-python-plugins-loader
-Libdnf plugin that allows loading Python plugins.
+Libdnf5 plugin that allows loading Python plugins.
 
 %files -n python3-libdnf5-python-plugins-loader
 %{_libdir}/libdnf5/plugins/python_plugins_loader.*
@@ -540,7 +606,7 @@ Requires:       libdnf5%{?_isa} = %{version}-%{release}
 Requires:       libdnf5-cli%{?_isa} = %{version}-%{release}
 Requires:       dbus
 Requires:       polkit
-%if 0%{?fedora} <= 38
+%if %{without dnf5_obsoletes_dnf}
 Requires:       dnf-data
 %endif
 
@@ -577,6 +643,10 @@ Package management service with a DBus interface.
 Summary:        Plugins for dnf5
 License:        LGPL-2.1-or-later
 Requires:       dnf5%{?_isa} = %{version}-%{release}
+Provides:       dnf5-command(builddep)
+Provides:       dnf5-command(changelog)
+Provides:       dnf5-command(copr)
+Provides:       dnf5-command(repoclosure)
 
 %description -n dnf5-plugins
 Core DNF5 plugins that enhance dnf5 with builddep, changelog, copr, and repoclosure commands.
@@ -605,6 +675,7 @@ Core DNF5 plugins that enhance dnf5 with builddep, changelog, copr, and repoclos
     -DWITH_LIBDNF5_CLI=%{?with_libdnf_cli:ON}%{!?with_libdnf_cli:OFF} \
     -DWITH_DNF5=%{?with_dnf5:ON}%{!?with_dnf5:OFF} \
     -DWITH_PLUGIN_ACTIONS=%{?with_plugin_actions:ON}%{!?with_plugin_actions:OFF} \
+    -DWITH_PLUGIN_RHSM=%{?with_plugin_rhsm:ON}%{!?with_plugin_rhsm:OFF} \
     -DWITH_PYTHON_PLUGINS_LOADER=%{?with_python_plugins_loader:ON}%{!?with_python_plugins_loader:OFF} \
     \
     -DWITH_COMPS=%{?with_comps:ON}%{!?with_comps:OFF} \
@@ -642,7 +713,7 @@ Core DNF5 plugins that enhance dnf5 with builddep, changelog, copr, and repoclos
 %install
 %cmake_install
 
-%if 0%{?fedora} > 38
+%if %{with dnf5_obsoletes_dnf}
 ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/dnf
 ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/yum
 %endif
@@ -661,7 +732,7 @@ done
 #find_lang {name}
 
 # Remove if condition when Fedora 37 is EOL
-%if 0%{?fedora} > 37
+%if 0%{?fedora} > 37 || 0%{?rhel} > 10
 ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 %endif
 
@@ -669,6 +740,166 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 
 
 %changelog
+* Thu Nov 09 2023 Packit <hello@packit.dev> - 5.1.7-1
+- Release 5.1.7
+- Actions plugin's actions.conf can set "Enabled" for each action separately
+- Actions plugin now supports action options
+- Implement `get_reason()` for groups and environments
+- Disable the RHSM plugin by default and enable it in the RPM spec
+- Add missing docs for `get_advisory_packages_sorted_by_name_arch_evr(bool)`
+- Update documentation about maintained coprs
+- modules: Test `ModuleProfile::is_default()` method
+- modules: Simplify finding whether profile is default in module list
+- modules: Fix `ModuleProfile::is_default` method
+- modules: Store if profile is default in ModuleProfile object
+- Generate docs for undocummented functions so they at least show up
+- Add python advisory docs
+- Add advisory python API tests
+- Enable AdvisoryModule bindings
+
+* Thu Oct 26 2023 Packit <hello@packit.dev> - 5.1.6-1
+- Release 5.1.6
+- Document aliases for command line arguments
+- Don't print missing positional argument error with `--help`
+- Improve error handling for missing arguments
+- Document `--forcearch` as a global argument
+- Make `--forcearch` a global argument
+- Avoid reinstalling installonly packages marked for ERASE
+- Add `filter_installonly` to PackageQuery
+- Implement new argument `--show-new-leaves`
+- advisory: document advisory command changes and few clean ups
+- Document `--dump-main-config` and `--dump-repo-config`
+- Implement new argument `--dump-repo-config`
+- Implement new argument `--dump-main-config`
+- Show default profiles in `module list`
+- Print hint for the `module list` table
+- Show information about default streams in `module list`
+- Document `module list` options
+- Add `enabled` and `disabled` arguments to `module list`
+- Add module spec filtering to `module list`
+- Add `module list` command
+- Document `group upgrade`
+
+* Thu Oct 05 2023 Packit <hello@packit.dev> - 5.1.5-1
+- Improved ConfigParser
+- Improved docs for `group install` and `group remove`
+- Fix man pages deployment
+- Update API doc related to keepcache
+- Implement `rhsm` (Red Hat Subscription Manager) plugin
+- Document `--dump-variables`
+- Implement `dnf5 --dump-variables`
+- Improve contributing guidelines: don't mention "ready-for-review"
+- Allow specifying upper-case tags in `repoquery --queryformat`
+- api: Make get_base_arch() public
+- Improve input for large epochs that don't fit into `time_t`
+
+* Mon Sep 18 2023 Nicola Sella <nsella@redhat.com> - 5.1.4-1
+- Release 5.1.4
+- Fix Builds on i386
+- Print error if unsupported architecture used
+- argument_parser: New error class for invalid value
+- Allow obsoletion of protected packages
+- Add support for repository configuration in /usr
+- Release 5.1.2
+- Print error messages in nested errors
+- Implement `dnf5daemon-server` introspection xml for Advisory interface
+- Implement `dnf5daemon-client advisory info` command
+- Implement `dnf5daemon-client advisory list` command
+- Implement `dnf5daemon-server` advisory service
+- Improve `dnf5daemon-client --help`
+- Enable `--repofrompath` repos by default
+- Fix error on creating repo with duplicate id
+
+* Fri Aug 04 2023 Packit <hello@packit.dev> - 5.1.1-1
+- Postpone replace of DNF to Fedora 41
+- Add a description of `with_binaries` option for dnf5daemon
+- Include RPM logs in KeyImportError
+- Abort PGP checking immediately if any checks fail
+- Display warning message when any PGP checks skipped
+- Don't allow main gpgcheck=0 to override repo config
+- gups and environments to `history info` ouput
+- Store missing id and repoid in db for groups/environments
+- Fix out-of-bounds access in Goal::Impl::add_install_to_goal
+- Fix repoquery `--list`
+- `allow_vendor_change` was reverted back to true
+- Doc update to allow `logdir` outside the installroot
+- Remove `grouplist` and `groupinfo` aliases
+- Add `grp` alias for group command
+- `repoquery --exactdeps` needs `--whatdepends` or `--whatrequires`
+- Update and unify repoquery manpage
+- Document replace of `-v` option by `repoinfo` command
+- Add `remove --no-autoremove` option
+- Document dropped `if` alias of `info` command
+- document `actions` plugin
+- Fix printing advisories for the running kernel
+- Revert "advisory: add running kernel before pkg_specs filtering"
+
+* Wed Jul 19 2023 Fedora Release Engineering <releng@fedoraproject.org> - 5.1.0-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
+
+* Tue Jul 18 2023 Packit <hello@packit.dev> - 5.1.0-1
+- Minor version update. API is considered stable
+- Remove unneeded unused configuration priority
+- Don't show dnf5-command hint for unknown options, only commands
+- Add hint to install missing command with dnf5-command(<name>)
+- Add dnf5-command(<command-name>) provides to dnf5
+- Add dnf5-command(<command-name>) provides to dnf5-plugins
+- Document several methods as deprecated
+- Fix core dump on `--refresh` switch usage
+- Add `repoquery -l`/`--list` aliases for `--files` for rpm compat
+- Add `vendor` attr to package in `dnfdaemon-server`
+- Document `dnf5-plugins` package in man pages
+
+* Tue Jul 11 2023 Jitka Plesnikova <jplesnik@redhat.com> - 5.0.15-4
+- Perl 5.38 rebuild
+
+* Sat Jul 01 2023 Python Maint <python-maint@redhat.com> - 5.0.15-3
+- Rebuilt for Python 3.12
+
+* Fri Jun 30 2023 Adam Williamson <awilliam@redhat.com> - 5.0.15-2
+- Rebuild for fmt 10 again
+
+* Thu Jun 29 2023 Packit <hello@packit.dev> - 5.0.15-1
+- Add `module enable` subcommand
+- Add `--repofrompath` option
+- Add `--forcearch` option to multiple commands
+- Add `reinstall --allowerasing` option
+- Add `repoquery --sourcerpm` option
+- Add `repoquery --srpm` option
+- Add `chacheonly` configuration option
+- Add `--cacheonly` option
+- Add `--refresh` option
+- Change default value for `best` configuration to true
+- Change default value for `allow_vendor_change` configuration to false
+- changelog: Fix behavior of `--since` option
+- builddep: Fix handling BuildRequires in spec files
+- swig: Return None for unset options in Python
+- Verify transaction PGP signatures automatically
+- Fix checking whether updateinfo metadata are required
+- Fix handling empty epoch when comparing nevra
+- Fix building with upcoming fmt-10 library
+- Rename namespace, includes and directories from libdnf to libdnf5
+- Provide /var/cache/libdnf5 instead of /var/cache/libdnf (RhBug:2216849)
+
+* Wed Jun 28 2023 Vitaly Zaitsev <vitaly@easycoding.org> - 5.0.14-2
+- Rebuilt due to fmt 10 update.
+- Added upstream patches with fmt 10 build fixes.
+
+* Wed Jun 14 2023 Packit <hello@packit.dev> - 5.0.14-1
+- Modify libdnf5-devel to generate pkgconf(libdnf5)
+- Handle unnamed environments in transaction table
+- Return error exit code on RPM transaction failure
+- Add `repoquery --file` option
+- Add `repoquery --arch` option
+- Add `repoquery --installonly` option
+- Add `repoquery --extras`, `--upgrades` and `--recent` options
+- Add `repoquery --changelogs` formatting option
+- Don't complete ls alias
+- Add rq command alias for `repoquery`
+- Exclude dnf.conf when not installed
+- Improve the download methods API
+  - Switch to parameterless download methods and introduce setters for fail_fast and resume
+  - Affected classes: libdnf::repo::FileDownloader, libdnf::repo::PackageDownloader
 * Fri Jun 16 2023 Liu Yang <Yang.Liu.sn@gmail.com> - 5.0.13-2.rv64
 - Skip tests on riscv64
 
@@ -680,13 +911,14 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 - Fix resolve behavior for `download`
 - Add a message when `--downloadonly` is used
 - Add `--downloadonly` option to multiple commands
+
+* Thu May 25 2023 Nicola Sella <nsella@redhat.com> - 5.0.12-1
 - Release 5.0.12
 - Have DNF update to DNF5
-  - Add dnf, yum obsoletes and provides
-  - Symlinks for `dnf` and `yum` binaries
-  - Move ownership of /etc/dnf/dnf.conf, /etc/dnf/vars, and
-    /etc/dnf/protected.d from dnf-data to libdnf5
-    - Conflict with older versions of dnf-data that own these files/directories
+- Add dnf, yum obsoletes and provides
+- Symlinks for `dnf` and `yum` binaries
+- Move ownership of /etc/dnf/dnf.conf, /etc/dnf/vars, and /etc/dnf/protected.d from dnf-data to libdnf5
+- Conflict with older versions of dnf-data that own these files/directories
 - Print environments in the transaction table
 - Add support for environmantal groups in dnf5daemon
 - Handle unnamed groups in transaction table
@@ -700,13 +932,13 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 - Add `repoquery --qf` alias to `repoquery --queryformat`
 - Add get_depends() to package and --depends to repoquery
 - Implement keepcache functionality (RhBug:2176384)
-  - API changes:
-    - libdnf::repo::PackageDownloader default ctor dropped (now accepting the Base object)
-    - libdnf::base::Transaction not accepting dest_dir anymore (implicitly taken from configuration)
-  - A note for existing users:
-    - Regardless of the keepcache option, all downloaded packages have been cached up until now.
-    - Starting from now, downloaded packages will be kept only until the next successful transaction (keepcache=False by default).
-    - To remove all existing packages from the cache, use the `dnf5 clean packages` command.
+- API changes:
+- libdnf::repo::PackageDownloader default ctor dropped (now accepting the Base object)
+- libdnf::base::Transaction not accepting dest_dir anymore (implicitly taken from configuration)
+- A note for existing users:
+- Regardless of the keepcache option, all downloaded packages have been cached up until now.
+- Starting from now, downloaded packages will be kept only until the next successful transaction (keepcache=False by default).
+- To remove all existing packages from the cache, use the `dnf5 clean packages` command.
 - goal: Split group specs resolution to separate method
 - comps: Possibility to create an empty EnvironmentQuery
 - `remove` command accepts `remove spec`
@@ -714,6 +946,9 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 - Remove duplicates from `group list` output
 - Document `copr` plugin command
 - Document `builddep` plugin command
+
+* Fri May 19 2023 Petr Pisar <ppisar@redhat.com> - 5.0.11-3
+- Rebuild against rpm-4.19 (https://fedoraproject.org/wiki/Changes/RPM-4.19)
 
 * Fri May 19 2023 Nicola Sella <nsella@redhat.com> - 5.0.11-2
 - Fix builds for arch non x86_64
@@ -752,6 +987,9 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 - comps: Add conversion of PackageType to string(s)
 - Add check-update alias for check-upgrade
 - Add `check-upgrade --changelogs`
+
+* Tue May 02 2023 Richard W.M. Jones <rjones@redhat.com> - 5.0.9-3
+- Default tests off (temporarily, hopefully) on riscv64 arch.
 
 * Wed Apr 26 2023 Nicola Sella <nsella@redhat.com> - 5.0.9-2
 - Release 5.0.9 (Nicola Sella)
@@ -800,7 +1038,6 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 - Fix --exactdeps argument description
 
 * Wed Mar 8 2023 Nicola Sella <nsella@redhat.com> - 5.0.7-1
-- Update to 5.0.7
 - Document set/get vars in python api
 - Document --strict deprecation
 - New configuration option "disable_multithreading"
@@ -817,9 +1054,6 @@ ln -sr %{buildroot}%{_bindir}/dnf5 %{buildroot}%{_bindir}/microdnf
 - transaction: Change API to run transaction without args
 - Add explicit package version for libdnf5-cli
 - Improved performance of packagequery
-* Wed Feb 15 2023 Nicola Sella <nsella@redhat.com> - 5.0.6-2
-- Resolve Major upgrade Bug (rhbz#2080358)
-- Add explicit package version for libdnf5-cli
 
 * Tue Feb 14 2023 Nicola Sella <nsella@redhat.com> - 5.0.6-1
 - Add obsoletes of microdnf
